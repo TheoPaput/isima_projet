@@ -29,7 +29,7 @@ class NeuralNetwork
   
   
   // Return the outputs matrix for a set of inputs
-  float[] get_outputs(float[] inputs)
+  float[] guess_outputs(float[] inputs)
   {
     int i, j;
     float sum;
@@ -58,11 +58,71 @@ class NeuralNetwork
   
   
   
+  // adjuste each weights of the neural network in terms of error value
+  void adjuste_weights(float[] final_outputs, float[] known_outputs)
+  {
+    int i, j, k;
+    float sum;
+    float[] final_errors = new float[output_nodes];
+    float[] hidden_errors = new float[hidden_nodes];
+    
+    init_matrix(final_errors, 0.0);
+    init_matrix(hidden_errors, 0.0);
+    
+    // calcul of the finals errors
+    for (i = 0; i < output_nodes; i++) {
+      final_errors[i] = known_outputs[i] - final_outputs[i];
+    }
+    
+    // calcul of the hiddens errors
+    for (i = 0; i < hidden_nodes; i++) {
+      for (j = 0; j < output_nodes; j++) {
+        sum = 0.0;
+        for (k = 0; k < output_nodes; k++) {
+          sum += output_weights[j][k];
+        }
+        hidden_errors[i] += final_errors[j] * (output_weights[i][j]/sum);
+      }
+    }
+    
+    // modify the output_weights
+    for (i = 0; i < output_nodes; i++) {
+      for (j = 0; j < hidden_nodes; j++) {
+        output_weights[i][j] += output_weights[i][j] * final_errors[i] * learning_rate;
+      }
+    }
+    
+    //modify the hidden_weights
+    for (i = 0; i < hidden_nodes; i++) {
+      for (j = 0; j < input_nodes; j++) {
+        hidden_weights[i][j] += hidden_weights[i][j] * hidden_errors[i] * learning_rate;
+      }
+    }
+  }
+  
+  
+  
   // Train the network with a set of inputs and a known set of outputs
   void train(float[] inputs, float[] known_outputs)
   {
-    
+    float[] final_outputs = guess_outputs(inputs);
+    if (!compare(final_outputs,known_outputs))
+      adjuste_weights(final_outputs, known_outputs);
   }
+  
+  
+  
+  // Compare two matrix
+  boolean compare(float[] matrix1, float[] matrix2)
+  {
+    int i;
+    boolean flag = true;
+    for (i = 0; i < matrix1.length; i++) {
+      flag = flag && (matrix1[i] == matrix2[i]);
+    }
+    return flag;
+  }
+  
   
   
   // Initialisation of a weights matrix with random specific values
@@ -79,12 +139,23 @@ class NeuralNetwork
   
   
   // Activation fonction
-  int activation(float value)
+  float activation(float value)
   {
-    int flag = 1;
+    float flag = 1;
     if (value <= 0)
       flag = -1;
     return flag;
+  }
+  
+  
+  
+  // Initialisation of a matrix with specific value
+  void init_matrix(float[] matrix, float value)
+  {
+    int i;
+    for (i = 0; i < matrix.length; i++) {
+      matrix[i] = value;
+    }
   }
   
   
