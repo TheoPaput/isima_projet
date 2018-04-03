@@ -141,10 +141,7 @@ class NeuralNetwork
   // Activation fonction
   float activation(float value)
   {
-    float flag = 1;
-    if (value <= 0)
-      flag = -1;
-    return flag;
+    return (1/(1+exp(-value)));
   }
   
   
